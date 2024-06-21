@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat App</title>
+  <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+</head>
+<body>
+  <div>
+    <input id="user" placeholder="User" />
+    <button onclick="setUser()">Set User</button>
+  </div>
+  <div>
+    <input id="room" placeholder="Room" />
+    <button onclick="joinRoom()">Join Room</button>
+    <button onclick="leaveRoom()">Leave Room</button>
+  </div>
+  <div>
+    <input id="message" placeholder="Message" />
+    <button onclick="sendMessage()">Send Message</button>
+  </div>
+  <div>
+    <input id="privateUser" placeholder="Private User" />
+    <input id="privateMessage" placeholder="Private Message" />
+    <button onclick="sendPrivateMessage()">Send Private Message</button>
+  </div>
+  <ul id="messages"></ul>
+
+  <script>
+    const socket = io('http://localhost:3000');
+
+    socket.on('message', (data) => {
+      const messages = document.getElementById('messages');
+      const message = document.createElement('li');
+      message.innerText = `${data.user}: ${data.text}`;
+      messages.appendChild(message);
+    });
+
+    socket.on('private_message', (data) => {
+      const messages = document.getElementById('messages');
+      const message = document.createElement('li');
+      message.innerText = `Private - ${data.user}: ${data.text}`;
+      messages.appendChild(message);
+    });
+
+    socket.on('private_message_error', (data) => {
+      alert(data.message);
+    });
+
+    function setUser() {
+      const user = document.getElementById('user').value;
+      socket.emit('set_user', { user });
+    }
+
+    function joinRoom() {
+      const room = document.getElementById('room').value;
+      const user = document.getElementById('user').value;
+      socket.emit('join', { room, user });
+    }
+
+    function leaveRoom() {
+      const room = document.getElementById('room').value;
+      socket.emit('leave', { room });
+    }
+
+    function sendMessage() {
+      const room = document.getElementById('room').value;
+      const message = document.getElementById('message').value;
+      socket.emit('message', { room, message });
+    }
+
+    function sendPrivateMessage() {
+      const to = document.getElementById('privateUser').value;
+      const message = document.getElementById('privateMessage').value;
+      socket.emit('private_message', { to, message });
+    }
+  </script>
+</body>
+</html>
